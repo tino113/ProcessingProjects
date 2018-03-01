@@ -1,0 +1,9 @@
+<<Topic>>
+<Page Name>words ,for ,each ,page ,go ,here ,separated ,by ,commas
+<Explanation>after ,each ,word ,should ,be ,a ,space ,but not ,before 
+<For>each ,page ,of ,words ,goes ,on ,a ,new ,line ,and ,must ,be ,separated ,by ,commas
+<Each>don't ,put ,too ,many ,words ,on ,each ,page ,to ,keep ,buttons ,large
+<Page>words ,or ,phrases ,are acceptable ,but ,spaces ,should ,only be ,in phrases
+<Required>phrases should ,be short ,otherwise ,buttons ,will not ,look ,right
+#Hashtags can be used to place comments , these lines will be ignored 
+<Whatever>double  spaces, should  be   fine 

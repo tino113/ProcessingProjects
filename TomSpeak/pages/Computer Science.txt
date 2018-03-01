@@ -1,0 +1,14 @@
+<<Computer Science - Python>>
+<Data Types>int ,str ,float ,bool ,list ,True ,False
+<Variable names>var,num,data,even,odd,number,list,average,answer,outpt,inpt,length,len
+<variable assignment>= ,+= ,-= ,*= ,/= 
+<Math Functions>+ ,- ,* ,/ ,// ,% ,sqrt ,( ,)  
+<Logic and comparisons>and ,or ,not ,< ,<= ,> ,>= ,== ,!= 
+<selection (if)>if ,elif ,else ,: ,in ,
+<iteration (loops)>for ,while ,in ,: ,range ,( ,) 
+<functions>def ,( ,) ,: ,
+<common Functions># ,print ,range ,input ,global 
+<common imports>import ,random ,math  
+<lists>[ ,] ,' ,' ," ," ,.insert ,.append ,.remove ,.reverse ,.sort ,( ,) 
+<dictionaries>{ ,} ,: ,' ,' ," ," ,.update 
+<files>open ,.close ,.write ,.read ,.readline ,.seek ,( ,) ,r,w,r+
