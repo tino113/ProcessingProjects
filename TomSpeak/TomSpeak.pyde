@@ -5,10 +5,16 @@ import subprocess
 pages = []
 pageTitles = []
 currPage = 0
+gapPerc = 80
 gap = 10
+titleHeightPerc = 30
 titleHeight = 20
+textAreaHeightPerc = 7.5
 textAreaHeight = 80
+toolbarHeightPerc = 6.7
 toolbarHeight = 90
+prevW = 0
+prevH = 0
 ml = 0
 bl = 0
 tl = 0
@@ -37,11 +43,11 @@ def parseFolders(f):
                     pageFiles.append(f)
         return pageFiles
 
-def loadPages(fs):
+def loadPages(path,fs):
 	pages = []
 	for f in fs:
 		pname = re.split('\.', f)[0]
-		with open('pages/' + f, 'r') as fc:
+		with open(path + '/pages/' + f, 'r') as fc:
 			topic = ''
 			for l in fc:
 				noSpace = l.replace(' ','')
@@ -66,30 +72,81 @@ def loadPages(fs):
 					pages.append(wList)
 	return(pages)                     
 
-def setup():
-	global currPage
+def calcSizes(w,h):
+	global gap
+	global titleHeight
+	global textAreaHeight
+	global toolbarHeight
 	global ml
 	global bl
 	global tl
 	global tbl
+
+	gap = ceil(w/gapPerc)
+	titleHeight = ceil(h/titleHeightPerc)
+	textAreaHeight = ceil(h/textAreaHeightPerc)
+	toolbarHeight = ceil(h/toolbarHeightPerc)
+
+	bl = createGraphics(w, h)
+	ml = createGraphics(w, h)
+	tbl = createGraphics(w, toolbarHeight) 
+	tl = createGraphics(w, textAreaHeight)
+
+def setup():
+	global currPage
 	global pages
 	size(800,600)
 	this.surface.setResizable(True)
 	noCursor()
 	currPage = 0
-	files = parseFolders(os.getcwd() + '/pages')
-	pages = loadPages(files)
+
+ 	maxTries = 100
+ 	tries = 0
+	foundPagesFolder = False
+	path = os.getcwd()
+	while not foundPagesFolder:
+		files = parseFolders(path + '/pages')
+		if not files == []:
+			foundPagesFolder = True
+		else:
+			path = os.path.dirname(path)
+			if path == '/' or tries >= maxTries:
+				print('TomSpeak: No Pages Directory Found!')
+				break
+		tries += 1
+
+	pages = loadPages(path,files)
+	if pages == []:
+		pageTitles.append({'topic':'No Topic', 'title':'No Title'})
+		pageTitles.append({'topic':'No Topic', 'title':'No Title'})
+		pages = [['load ','pages ']]
 	background(0)
 	clear()
 	pg = pages[currPage]
-	bl = createGraphics(width, height)
-	ml = createGraphics(width, height)
-	tbl = createGraphics(width, toolbarHeight) 
-	tl = createGraphics(width, textAreaHeight)
+	prevW, prevH = width, height
+	calcSizes(width,height)
 	drawBoxes(bl,tbl,pg)
-	
+
+def getTextSize(bl,pg,boxW,boxH):
+	longestL = 0
+	longestW = ''
+	for word in pg:
+		if len(word) > longestL:
+			longestL = len(word)
+			longestW = word
+	tsize = 200
+	bl.textSize(tsize)
+	widthLW = bl.textWidth(longestW)
+	heightLW = bl.textAscent() + bl.textDescent()
+	while widthLW > boxW - gap*3 or heightLW > boxH - gap*3:
+		tsize -=1
+		bl.textSize(tsize)
+		widthLW = bl.textWidth(longestW)
+		heightLW = bl.textAscent() + bl.textDescent()
+
 def drawBoxes(bl,tbl,pg,fcol = color(64),scol = color(40),txcol = color(230),sdepth = 3,rnd = 10):
 	global buttons
+	#calcSizes(width,height)
 	bl.beginDraw()
 	bl.clear()
 	bl.noStroke()
@@ -111,21 +168,7 @@ def drawBoxes(bl,tbl,pg,fcol = color(64),scol = color(40),txcol = color(230),sde
 	offset = 0
 	count = 0
 	bl.textAlign(CENTER,CENTER)
-	longestL = 0
-	longestW = ''
-	for word in pg:
-		if len(word) > longestL:
-			longestL = len(word)
-			longestW = word
-	tsize = 200
-	bl.textSize(tsize)
-	widthLW = bl.textWidth(longestW)
-	heightLW = bl.textAscent() + bl.textDescent()
-	while widthLW > boxW - gap*3 or heightLW > boxH - gap*3:
-		tsize -=1
-		bl.textSize(tsize)
-		widthLW = bl.textWidth(longestW)
-		heightLW = bl.textAscent() + bl.textDescent()
+	getTextSize(bl,pg,boxW,boxH)
 	for row in range(rows):
 		tcol = cols
 		if remain < cols:
@@ -218,15 +261,15 @@ def clearCopyConsole():
 
 def newline():
 	global console
-	console += '\n'
+	console += '\n '
 
-def drawToolbar(tbl,tbHeight,tbcol = color(25),btncol = color(64),txcol = color(230),tsize = 25,rnd = 10):
+def drawToolbar(tbl,tbHeight,tbcol = color(25),btncol = color(64),txcol = color(230),rnd = 10):
 	tbl.beginDraw()
 	tbl.noStroke()
 	tbl.fill(tbcol)
 	tbl.rect(0,0,width,tbHeight)
 	tbl.textAlign(CENTER,CENTER)
-	tbl.textSize(tsize)
+	
 
 	xPos = gap
 	tbBns = 6
@@ -234,48 +277,50 @@ def drawToolbar(tbl,tbHeight,tbcol = color(25),btncol = color(64),txcol = color(
 	hBtnW = btnW/2
 	hTbH = tbHeight/2
 	dGap = gap*2
+	btnH = tbHeight-dGap
 	YPos = gap+(height-textAreaHeight-tbHeight)
+	getTextSize(tbl,['New Line'],btnW,btnH)
 	# Back Page
 	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,tbHeight-dGap,rnd,rnd,rnd,rnd)
+	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('< Bck', xPos+hBtnW,hTbH )
-	buttons.append(button(decCurrPage,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,tbHeight-dGap))
+	buttons.append(button(decCurrPage,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 	# Copy + Clear
 	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,tbHeight-dGap,rnd,rnd,rnd,rnd)
+	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('Cpy/Clr', xPos+hBtnW,hTbH )
-	buttons.append(button(clearCopyConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,tbHeight-dGap))
+	buttons.append(button(clearCopyConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 	# Copy
 	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,tbHeight-dGap,rnd,rnd,rnd,rnd)
+	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('Copy', xPos+hBtnW,hTbH )
-	buttons.append(button(copyConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,tbHeight-dGap))
+	buttons.append(button(copyConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 	# Clear
 	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,tbHeight-dGap,rnd,rnd,rnd,rnd)
+	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('Clear', xPos+hBtnW,hTbH )
-	buttons.append(button(clearConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,tbHeight-dGap))
+	buttons.append(button(clearConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 	# New Line
 	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,tbHeight-dGap,rnd,rnd,rnd,rnd)
+	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('New Line', xPos+hBtnW,hTbH )
-	buttons.append(button(newline,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,tbHeight-dGap))
+	buttons.append(button(newline,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 	# Forward Page
 	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,tbHeight-dGap,rnd,rnd,rnd,rnd)
+	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('Fwd >', xPos+hBtnW,hTbH )
-	buttons.append(button(incCurrPage,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,tbHeight-dGap))
+	buttons.append(button(incCurrPage,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 
 	tbl.endDraw()
@@ -296,10 +341,8 @@ def drawText(tl,text = '',tsize = 24):
 			currX = 0
 			currY += tsize
 		if w.find('\n') >= 0:
-			print(w)
 			currX = 0
 			currY += tsize
-			tl.text(re.split(w,'\n')[0],currX,currY)
 		else:
 			tl.text(w,currX,currY)
 		currX += wWidth
@@ -314,12 +357,22 @@ def drawMousePointer(ml,size = 30):
 	ml.endDraw()
 
 def draw():
+	global prevH
+	global prevW
+	global bl
+	global tbl
 	clear()
 	image(bl,0,0)
 	image(tbl,0,height-textAreaHeight-toolbarHeight)
 	image(tl,0,height-textAreaHeight)
 	drawMousePointer(ml)
 	image(ml,0,0)
+
+	if prevW != width or prevH != height:
+		calcSizes(width,height)
+		pg = pages[currPage]
+		drawBoxes(bl,tbl,pg)
+	prevW, prevH = width, height
 
 def mouseReleased():
 	global console
