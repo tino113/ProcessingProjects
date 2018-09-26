@@ -34,6 +34,7 @@ def setup():
     scn.addObject(RTSphere(PVector(-2,2,-4),3,w))
     scn.addLight(light(PVector(0,5,8),color(255,255,255),1.0))
     rt = raytracer()
-    rt.bucketRaytrace(scn,10)
+    rt.raytrace(scn)
+    #rt.bucketRaytrace(scn,10)
     
     

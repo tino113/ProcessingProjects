@@ -1,4 +1,5 @@
-import datetime
+from datetime import datetime
+from datetime import timedelta
 
 
 class button():
@@ -15,6 +16,7 @@ class button():
         self.type = btype
         self.drawn = False
         self.word = word
+        self.lastPressed = datetime.now()
         
     def debugDraw(self,layer):
         layer.beginDraw()
@@ -29,6 +31,15 @@ class button():
         else:
             self.hover = False
         return False
+    
+    def updateLastPressed(self):
+        self.lastPressed = datetime.now()
+    
+    def timeElapsed(self,tm):
+        if datetime.now() - self.lastPressed > timedelta(seconds=tm):
+            return True
+        else:
+            return False
 
     def onClick(self):
         self.function()

@@ -20,7 +20,6 @@ bl = 0
 tl = 0
 console = ''
 buttons = []
-lastWordLenStack = []
 
 def getClipboardData():
     p = subprocess.Popen(['pbpaste'], stdout=subprocess.PIPE)
@@ -53,6 +52,7 @@ def loadPages(path,fs):
 		pname = re.split('\.', f)[0]
 		with open(path + '/pages/' + f, 'r') as fc:
 			topic = ''
+			print(fc)
 			for l in fc:
 				noSpace = l.replace(' ','')
 				noSpace = noSpace.replace('	','')
@@ -100,14 +100,9 @@ def setup():
 	global currPage
 	global pages
 	size(800,600)
-	this.surface.setSize(displayWidth,displayHeight)
-	this.surface.setLocation(0,0)
-	#size(displayWidth,displayHeight)
 	this.surface.setResizable(True)
 	noCursor()
 	currPage = 0
-	clear()
-	rect(0,0,width,height)
 
  	maxTries = 100
  	tries = 0
@@ -115,10 +110,8 @@ def setup():
 	path = os.getcwd()
 	while not foundPagesFolder:
 		files = parseFolders(path + '/pages')
-		#print(path)
 		if not files == []:
 			foundPagesFolder = True
-			#print(path)
 		else:
 			path = os.path.dirname(path)
 			if path == '/' or tries >= maxTries:
@@ -127,7 +120,6 @@ def setup():
 		tries += 1
 
 	pages = loadPages(path,files)
-	#print(pages)
 	if pages == []:
 		pageTitles.append({'topic':'No Topic', 'title':'No Title'})
 		pageTitles.append({'topic':'No Topic', 'title':'No Title'})
@@ -274,27 +266,6 @@ def clearCopyConsole():
 def newline():
 	global console
 	console += '\n '
-	
-def toggleHalf():
-    global console
-    global tl
-    pg = pages[currPage]
-    if height - displayHeight > -20 and height - displayHeight < 20:
-        this.surface.setSize(int(displayWidth/2),int(height/2))
-        this.surface.setLocation(0,int(height/2))
-        drawText(tl,console)
-    else:
-        this.surface.setSize(displayWidth,displayHeight)
-        this.surface.setLocation(0,0)
-        drawText(tl,console)
-	
-def delete():
-  global tl
-  global console
-  global lastWordLenStack
-  if not len(lastWordLenStack) == 0:
-    console = console[:-lastWordLenStack[-1]]
-    lastWordLenStack = lastWordLenStack[:-1]
 
 def drawToolbar(tbl,tbHeight,tbcol = color(25),btncol = color(64),txcol = color(230),rnd = 10):
 	tbl.beginDraw()
@@ -305,7 +276,7 @@ def drawToolbar(tbl,tbHeight,tbcol = color(25),btncol = color(64),txcol = color(
 	
 
 	xPos = gap
-	tbBns = 7
+	tbBns = 6
 	btnW = (width-(gap*(tbBns+1)))/tbBns
 	hBtnW = btnW/2
 	hTbH = tbHeight/2
@@ -341,28 +312,12 @@ def drawToolbar(tbl,tbHeight,tbcol = color(25),btncol = color(64),txcol = color(
 	tbl.text('Clear', xPos+hBtnW,hTbH )
 	buttons.append(button(clearConsole,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
-	# Backspace
-	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
-	tbl.fill(txcol)
-	tbl.text('Del', xPos+hBtnW,hTbH )
-	buttons.append(button(delete,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
-	xPos += btnW + gap
 	# New Line
-	'''
 	tbl.fill(btncol)
 	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
 	tbl.fill(txcol)
 	tbl.text('New Line', xPos+hBtnW,hTbH )
 	buttons.append(button(newline,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
-	xPos += btnW + gap
-	'''
-	# ToggleHalf
-	tbl.fill(btncol)
-	tbl.rect(xPos,gap,btnW,btnH,rnd,rnd,rnd,rnd)
-	tbl.fill(txcol)
-	tbl.text('Toggle Half', xPos+hBtnW,hTbH )
-	buttons.append(button(toggleHalf,'',xPos,gap+(height-textAreaHeight-tbHeight),btnW,btnH))
 	xPos += btnW + gap
 	# Forward Page
 	tbl.fill(btncol)
@@ -424,18 +379,14 @@ def draw():
 	prevW, prevH = width, height
 
 def mouseReleased():
-    global console
-    global tl
-    global lastWordLenStack
-    for btn in buttons:
-        if btn.over():
-            if btn.timeElapsed(0.4):
-                if btn.type == 'word':
-                    console += btn.word
-                    lastWordLenStack.append(len(btn.word))
-                else:
-                    btn.function()
-                btn.updateLastPressed()
-    drawText(tl,console)
-    #pg = pages[currPage]
-    #drawBoxes(bl,pg)
+	global console
+	global tl
+	for btn in buttons:
+		if btn.over():
+			if btn.type == 'word':
+				console += btn.word
+			else:
+				btn.function()
+	drawText(tl,console)
+	#pg = pages[currPage]
+	#drawBoxes(bl,pg)

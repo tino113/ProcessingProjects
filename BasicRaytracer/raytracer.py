@@ -64,8 +64,8 @@ class raytracer():
                     c += ab + la
                 c *=  sampleWeight
                 c = clampCol(c)
-                #set(x,y,c)
-                pixels[width * y + x] = c
+                set(x,y,c)
+                #pixels[width * y + x] = c
         
         queueLock.acquire()
         print(".")
